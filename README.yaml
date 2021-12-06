@@ -1,0 +1,23 @@
+---
+#
+# This is the canonical configuration for the `README.md`
+# Run `make readme` to rebuild the `README.md`
+#
+
+# Name of this project
+name: "Confluent on OpenShift GitOps Demo"
+
+# Short description of this project
+description: |-
+  A end to end demo of setting up Confluent Operator on OpenShift 4
+
+# Canonical GitHub repo
+github_repo: osodevops/confluent-openshift-gitops-demo
+
+# How to use this project
+usage: |-
+
+related:
+  - name: "Confluent for Kubernetes (CFK) examples"
+    description: "Playground for Kafka / Confluent Kubernetes experimentations"
+    url: "https://github.com/osodevops/confluent-kubernetes-playground"
