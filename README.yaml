@@ -16,6 +16,20 @@ github_repo: osodevops/confluent-openshift-gitops-demo
 
 # How to use this project
 usage: |-
+  ### Overview
+  TODO
+  
+  ### Diagram
+
+# Example usage
+examples: |-
+  #### Requirements
+  * Red Hat login
+  * OpenShift CLI
+  * Flux CLI
+  * k9s (optional but good idea)
+  * AWS Account ID
+  * Permission to create a new IAM user with access key and secret
 
 related:
   - name: "Confluent for Kubernetes (CFK) examples"
