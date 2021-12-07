@@ -24,7 +24,6 @@ usage: |-
 # Example usage
 examples: |-
   #### Requirements
-  
   * Red Hat login
   * OpenShift CLI
   * Flux CLI
