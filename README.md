@@ -68,6 +68,30 @@ TODO
   - Select Single zone and 8 vCPU 32GiB RAM
   - Keep everything else as default and and click create. Kick back and make yourself a coffee or three - creating the cluster takes around ~30 minutes.
 
+### 2. Connecting to the cluster
+- Navigate to the [clusters section](https://console.redhat.com/openshift/) in the and select the cluster you created in step 1. Before you can login, we need to configure an OAuth provider. 
+- Select the Access control tab and then Identity providers. Click Add identity provider and select HTPasswd. This should present you with an auto generated set of credentials. Node these down as you will need them to obtain the token which authenticates you against the control plane API.
+- Next you will need to manually give the admin-xxx user Cluster administrative access. Click Cluster Roles and Access, Add user. Paste the newly created admin-xxx user in and select cluster-admins. Click add user.
+- Now we have setup the auth provider we can log into the cluster. Click Open console on the top right. This will open a new window, where you can enter in the credentials from the previous step.
+- Once logged into the cluster you should ensure you are running in Administrator mode, which you can select at the top left.  Now we can configure out OC CLI tool to connect to our cluster. At the top right of the console click admin-xxx and then select Copy login command.
+- This will present you with (another) login page, you need to authenticate again with the same credentials. Once successful you will be presented with a Display Token link, click that which will display a command that looks something like this:
+  ```shell
+    oc login --token=sha256~6CUsCy7sFt3-_xxxxxxxxxxxxxxxxxxxxxxxxx --server=https://api.xxx-demo.3wg2.p1.openshiftapps.com:6443
+  ```
+- Copy the full command and open your terminal window. Paste and run this command and away you go. It should look something like this:
+  ```shell
+    Logged into "https://api.xxx-demo.3wg2.p1.openshiftapps.com:6443" as "admin-TQ0NzM" using the token provided.
+
+    You don't have any projects. You can try to create a new project, by running
+
+    oc new-project <projectname>
+  ```
+- You can verify you have the correct permissions but running:
+  ```shell
+    ➜  ~ kubectl get pods -A | wc -l
+         314
+  ```
+
 
 
 
