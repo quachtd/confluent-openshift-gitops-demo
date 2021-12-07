@@ -92,6 +92,99 @@ TODO
          314
   ```
 
+### 3. Installing Flux and deploying Confluent operator
+- Flux required additional permissions on the cluster. To enable these run the following:
+  ```shell
+    oc adm policy add-scc-to-user privileged system:serviceaccount:flux-system:source-controller
+    oc adm policy add-scc-to-user privileged system:serviceaccount:flux-system:kustomize-controller
+    oc adm policy add-scc-to-user privileged system:serviceaccount:flux-system:image-automation-controller
+    oc adm policy add-scc-to-user privileged system:serviceaccount:flux-system:image-reflector-controller
+  ```
+- In your terminal, change directory into your `confluent-openshift-gitops-demo` folder (this the project you forked and cloned from GitLab) and run the following to bootstrap and install flux
+  ```shell
+    export GITHUB_TOKEN=<<YOUR GITHUB TOKEN>>
+    export GITHUB_USER=<<YOUR GITHUB USERNAME>>
+    export GITHUB_REPO=git@github.com:<<YOUR GITHUB USERNAME>>/confluent-openshift-gitops-demo.git
+    export GITHUB_REPO=confluent-openshift-gitops-demo
+    
+    flux bootstrap github \
+      --owner=${GITHUB_USER} \
+      --repository=${GITHUB_REPO} \
+      --branch=main \
+      --personal \
+      --path=cluster-manifests/clusters/ocp
+  ```
+- This will install the Flux toolkit and also reconcile the cluster against the kustomize's templates which are contained in the repository. The output should look something like this:
+  ```shell
+    ► connecting to github.com
+    ► cloning branch "main" from Git repository "https://github.com/osodevops/confluent-openshift-gitops-demo.git"
+    ✔ cloned repository
+    ► generating component manifests
+    ✔ generated component manifests
+    ✔ committed sync manifests to "main" ("547256db4759a0d2fb3ee377ab9be966e508de4b")
+    ► pushing component manifests to "https://github.com/osodevops/confluent-openshift-gitops-demo.git"
+    ✔ installed components
+    ✔ reconciled components
+    ► determining if source secret "flux-system/flux-system" exists
+    ► generating source secret
+    ✔ public key: ssh-rsa xxx
+    ✔ configured deploy key "flux-system-main-flux-system-./cluster-manifests/clusters/ocp2" for "https://github.com/osodevops/confluent-openshift-gitops-demo"
+    ► applying source secret "flux-system/flux-system"
+    ✔ reconciled source secret
+    ► generating sync manifests
+    ✔ generated sync manifests
+    ✔ committed sync manifests to "main" ("740cb6dcad75341ae342b479d9cd1600deb8afc4")
+    ► pushing sync manifests to "https://github.com/osodevops/confluent-openshift-gitops-demo.git"
+    ► applying sync manifests
+    ✔ reconciled sync configuration
+    ◎ waiting for Kustomization "flux-system/flux-system" to be reconciled
+    ✔ Kustomization reconciled successfully
+    ► confirming components are healthy
+    ✔ helm-controller: deployment ready
+    ✔ kustomize-controller: deployment ready
+    ✔ notification-controller: deployment ready
+    ✔ source-controller: deployment ready
+    ✔ all components are healthy
+  ```
+- Now flux is installed we need to create a Kustomize to install the Confluent Operator. Firstly you will need to pull the remote changes Flux has committed a bunch of stuff to your repository so you need to run the following:
+  ```shell
+    ➜  confluent-openshift-gitops-demo git:(main) ✗ git pull
+  ```
+- Create a `operators.yaml` in the `confluent-openshift-gitops-demo/cluster-manifests/clusters/ocp` folder and paste in the following:
+  ```yaml
+    apiVersion: kustomize.toolkit.fluxcd.io/v1beta1
+    kind: Kustomization
+    metadata:
+      name: infrastructure
+      namespace: flux-system
+    spec:
+      interval: 10m0s
+      sourceRef:
+        kind: GitRepository
+        name: flux-system
+      path: ./cluster-manifests/operators
+      prune: true
+  ```
+- Edit / Update the `confluent-openshift-gitops-demo/cluster-manifests/clusters/ocp/kustomization.yaml` to include the new kustomize definition: 
+  ```yaml
+    apiVersion: kustomize.config.k8s.io/v1beta1
+    kind: Kustomization
+    resources:
+      - gotk-components.yaml
+      - gotk-sync.yaml
+      - operators.yaml
+  ```
+- Add and commit both of these files back to the main branch in GitLab. You can either wait 1 minute for the cluster to automatically sync or manually trigger it using:
+  ```shell
+    flux reconcile kustomization flux-system --with-source
+  ```
+- Once this is complete you will have successfully installed the Confluent Operator into the cluster wider namespace. This means that all users on the platform can now leverage and deploy Confluent Kafka. You can also navigate to the Operators section in the cluster console and select Installed Operators. There you can filter for Confluent and you should see its successfully installed.
+- Confluent Operator will require a service account which the namespaces will use in order to create the Confluent CRD based resources. The policy has been included in the repository , we now just need to add and link that to the service account using the following command:
+  ```shell
+    oc apply -f ./dwp-ocp-demo/policy/confluent-security-context.yaml
+    oc adm policy add-scc-to-user confluent-operator -z confluent-for-kubernetes -n team-alpha
+  ```
+
 
 
 
