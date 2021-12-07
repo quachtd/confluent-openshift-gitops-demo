@@ -185,6 +185,51 @@ TODO
     oc adm policy add-scc-to-user confluent-operator -z confluent-for-kubernetes -n team-alpha
   ```
 
+### 4. Deploying your first Kafka cluster
+- Now that Confluent Operator is installed and monitoring all namespaces in the cluster we can get to the exciting stuff. Navigate to the other repository you cloned [team-alpha-resources](https://github.com/osodevops/confluent-openshift-team-alpha-resources) This repo contains everything Team Alpha need to get up and running their own, self contained deployment of Kafka and all its dependencies.
+- Flux will do all of the hard work for us, we just need to add another git repository for it to monitor. We can do this using the following commands:
+  ```shell
+    flux create source git team-alpha-resouces \
+      --url=https://github.com/osodevops/confluent-openshift-team-alpha-resources \
+      --branch=main
+  ```
+- Now you have attached a new source to the Flux-source-controller we just need to create the kustomize, todo this run the following:
+  ```shell
+    flux create kustomization team-alpha-resouces \
+      --source=GitRepository/team-alpha-resouces \
+      --path="./" \
+      --prune=true \
+      --interval=1m \
+      --namespace=flux-system
+  ```
+- You have now successfully deployed a new Kafka cluster with the following components:
+  ```shell
+    team-alpha                                         connect-0                                                             1/1     Running     0               14m
+    team-alpha                                         kafka-0                                                               1/1     Running     0               14m
+    team-alpha                                         kafka-1                                                               1/1     Running     0               14m
+    team-alpha                                         kafka-2                                                               1/1     Running     0               14m
+    team-alpha                                         schemaregistry-0                                                      1/1     Running     0               4m25s
+    team-alpha                                         zookeeper-0                                                           1/1     Running     0               14m
+    team-alpha                                         zookeeper-1                                                           1/1     Running     0               14m
+    team-alpha                                         zookeeper-2                                                           1/1     Running     0               14m
+  ```
+
+### 5. Creating Topics and installing Kafka Connect connectors
+- Teams who are consuming Kafka on OCP have the ability to create / update and delete topics, connectors and even schemas. We have included some sample in the [team-alpha-resources](https://github.com/osodevops/confluent-openshift-team-alpha-resources) repository.
+- The YAML specification the `KafkaTopic` resource must follow can be found [here](https://docs.confluent.io/operator/current/co-manage-topics.html). To create a new topic, simply create the yaml file in `confluent-openshift-team-alpha-resources/topics` and update the `kustomization.yaml` to include any additions. NOTE: you can add any custom config you want by `configs` element.
+- Kafka Connect is slightly more complicated than the `KafkaTopic` resource, firstly we can see that we have a kafka-connect cluster already running. The only connector installed is the Confluent Replicator this is purely for this demo as you will need to install which ever connectors you require. We have included a sample which is disabled (commented out) for you to use as a reference point. Simply comment this in if you want to deploy this basic example.
+
+### 6. Preform Confluent Platform upgrade
+- There are two components in which you will need to upgrade, the Operator itself together with its CRDs and the other being the platform components (Kafka / Zookeeper Docker images)
+- ***Upgrading Confluent Operator:*** This is installed by Helm, OCP takes care of this for us by installing the latest `2.2.0` If required you can set the specific version in the dwp-ocp-demo/operators/confluent.yaml
+- ***Upgrading Confluent Component Docker Images:*** The image tags for each component are specified in the CRD component. See the following example of installing 6.2.2:
+  ```shell
+    image:
+      application: confluentinc/cp-server:6.2.2
+      init: confluentinc/confluent-init-container:2.2.0
+  ```
+- Performing any of the above will perform a rolling update of each [statefulset](https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/) with the Confluent operator taking care of the order and movement of the underlying persistent volumes.  
+
 
 
 
@@ -194,6 +239,9 @@ TODO
 Check out these related projects.
 
 - [Confluent for Kubernetes (CFK) examples](https://github.com/osodevops/confluent-kubernetes-playground) - Playground for Kafka / Confluent Kubernetes experimentations
+- [Confluent Platform on Azure](https://github.com/osodevops/terraform-azure-confluent-platform) - Terraform module to deploy CP using supported Ansible scripts
+- [Confluent Platform on AWS](https://github.com/osodevops/aws-terraform-module-confluent) - Terraform module to deploy CP using supported Ansible scripts
+- [CP Ansible Docker](https://github.com/osodevops/docker-cp-ansible) - Docker wrapper to run CP Ansible on air gapped environments
 
 
 
