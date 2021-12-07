@@ -23,13 +23,27 @@ usage: |-
 
 # Example usage
 examples: |-
+  ### Getting Started
   #### Requirements
-  * Red Hat login
-  * OpenShift CLI
-  * Flux CLI
-  * k9s (optional but good idea)
+  * [Red Hat login](https://sso.redhat.com/auth/realms/redhat-external/login-actions/registration?client_id=cloud-services&tab_id=DeYAMfKt5Mo)
+  * [OpenShift CLI](https://formulae.brew.sh/formula/openshift-cli)
+  * [Flux CLI](https://fluxcd.io/docs/cmd/)
+  * [k9s](https://github.com/derailed/k9s) (optional but good idea)
   * AWS Account ID
   * Permission to create a new IAM user with access key and secret
+
+  ### Pre-Deployment Tasks
+  * Login to your AWS account and create a new user with the username `osdCcsAdmin`` and attached administrator permissions. NOTE: The username has to be exactly that value. Enable programmatically access and download the access key and secret - you will need them in part 1. 
+  * Fork [confluent-openshift-gitops-demo](https://github.com/osodevops/confluent-openshift-gitops-demo) repository into your own GitHub account and clone to your local machine
+  * Fork [team-alpha-resources](https://github.com/osodevops/confluent-openshift-team-alpha-resources) repository into your own GitHub account and clone to your local machine
+
+  ### 1. Create a OpenShift cluster
+   Login and navigate to the [Clusters](https://console.redhat.com/openshift) section in the Red Hat Console. Here you can create a trial cluster on AWS or GCP, for this example we will be using AWS:
+    - Click Create trial cluster and select AWS.
+    - View and accept the terms and conditions. (this is mandatory to proceed) 
+    - Complete the form with mandatory information (AWS account ID / Access key and secret / Cluster name / Region)
+    - Select Single zone and 8 vCPU 32GiB RAM
+    - Keep everything else as default and and click create. Kick back and make yourself a coffee or three - creating the cluster takes around ~30 minutes.
 
 related:
   - name: "Confluent for Kubernetes (CFK) examples"
