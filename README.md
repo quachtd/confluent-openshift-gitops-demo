@@ -37,9 +37,10 @@ A end to end demo of setting up Confluent Operator on OpenShift 4
 ## Usage
 
 ### Overview
-TODO
+Complete demo Confluent environment running on OpenShift targeting declarative Kafka, Zookeeper and Schema Registry on CFK. Platform compoents and resources are managed by GitOps with declarative YAML, FluxCD, and the [Operator Pattern](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/).
 
 ### Diagram
+![solution_diagram](https://lucid.app/publicSegments/view/6c5370eb-1fd7-453f-a94b-f8291b881c55/image.png)
 
 
 
